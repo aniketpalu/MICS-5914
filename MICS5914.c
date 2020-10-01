@@ -1,43 +1,68 @@
-#include "MICS5914.h"
-
-
-int _pinNo;
-float tempResistance_NH3;
-/************************************************************************
- * @fn          setup(pinNO);
- * 
- * @brief       Sets the Pin Mode and base resistance of NH3
- * 
- * @param       Pin number of Microcontroller connected to MICS5914
- * 
- * @return      None
+/*
+ * MICS5914.c
+ *
+ *  Created on: Oct 1, 2020
+ *      Author: Aniket Paluskar
  */
 
-void setup(int pinNO)
+#include "MICS5914.h"
+
+#include <ti/drivers/ADC.h>
+#include <math.h>
+
+/*
+ * Static Functions
+ */
+static float getResistance(ADC_Handle adcHandle);
+
+
+/*
+ * Static Variables
+ */
+static uint16_t readings;
+
+/**********************************************************
+ * @fn               getNH3()
+ *
+ * @brief            Calculates the NH3 in the air
+ *
+ * @param            ADC_Handle
+ *
+ * @returns          uint16_t value of NH3 in ppm units
+ */
+
+uint16_t getNH3_MICS5914(ADC_Handle adcHandle)
 {
-    _pinNo = pinNO;
-    pinMode(_pinNo, INPUT);
+    float NH3Detection_Volts = 0.0, NH3Detection = 0.0;
+    NH3Detection_Volts = getResistance(adcHandle);
+    NH3Detection = NH3Detection_Volts * (MAX_NH3_PPM / MAX_NH3_OP_VOLTAGE);
+    return NH3Detection;
 }
 
 
-
-/************************************************************************
- * @fn          get_NH3_value();
- * 
- * @brief       Fetched the value from sensor
- * 
- * @param       None
- * 
- * @return      Float Value of NH3 in air, Unit : ppm
+/**********************************************************
+ * @fn               getResistance(ADC_Handle adc)
+ *
+ * @brief            Calculates the resistance of given Handle
+ *
+ * @param            ADC handle
+ *
+ * @returns          float value with unit Volts
  */
-
-float get_NH3_value()
+float getResistance(ADC_Handle adcHandle)
 {
-    tempResistance_NH3 = 0;
-    int i;
-    for(i=0;i<100;i++)
+    uint32_t tempResistance=0;
+    uint8_t count =0;
+    int_fast16_t res;
+    for(int i = 0;i < 100; i++)
     {
-        tempResistance_NH3 += analogRead(_pinNo);
+       res =  ADC_convert(adcHandle, &readings);
+       if(res == ADC_STATUS_SUCCESS)
+       {
+          tempResistance = ADC_convertToMicroVolts(adcHandle, readings);
+          tempResistance += tempResistance/pow(10,6);                      //Converting from MicroVolts to Volts
+          count++;
+       }
     }
-    return tempResistance_NH3/100;
+    return count!=0 ? tempResistance/count: 0 ;
 }

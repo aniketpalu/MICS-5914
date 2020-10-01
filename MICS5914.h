@@ -1,11 +1,24 @@
-#ifndef MICS5914_h
-#define MICS5914_h
+/*
+ * MICS5914.h
+ *
+ *  Created on: Oct 1, 2020
+ *      Author: Aniket Paluskar
+ */
 
-int pinNo;
-int NH3_value;
+#ifndef APPLICATION_MICS5914_MICS5914_H_
+#define APPLICATION_MICS5914_MICS5914_H_
+
+#include <ti/drivers/ADC.h>
+
+/*************************************MACROS**************************************/
+#define MAX_NH3_PPM         300             //Maximum NH3 Detection Level
+#define MAX_NH3_OP_VOLTAGE  2.2             // Maximum Output Voltage from NH3 Sensor
 
 
-void setup(int pinNo);
-float get_NH3_value();
+/*
+ * Functions
+ */
+uint16_t getNH3_MICS5914(ADC_Handle adcHandle);
 
-#endif
+
+#endif /* APPLICATION_MICS5914_MICS5914_H_ */
